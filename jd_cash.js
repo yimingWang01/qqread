@@ -1,3 +1,4 @@
+
 /*
 签到领现金，每日2毛～5毛
 可互助，助力码每日不变，只变日期
@@ -8,14 +9,11 @@
 [task_local]
 #签到领现金
 2 0-23/4 * * * https://gitee.com/lxk0301/jd_scripts/raw/master/jd_cash.js, tag=签到领现金, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
-
 ================Loon==============
 [Script]
 cron "2 0-23/4 * * *" script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_cash.js,tag=签到领现金
-
 ===============Surge=================
 签到领现金 = type=cron,cronexp="2 0-23/4 * * *",wake-system=1,timeout=3600,script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_cash.js
-
 ============小火箭=========
 签到领现金 = type=cron,script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_cash.js, cronexpr="2 0-23/4 * * *", timeout=3600, enable=true
  */
@@ -29,7 +27,7 @@ let cookiesArr = [], cookie = '', message;
 let helpAuthor = true;
 const randomCount = $.isNode() ? 20 : 5;
 
-newShareCodes = [{"inviteCode":"eU9YEIzvIL9XlTmXuAhW"},{"inviteCode":"eU9YarjmN_l0-GaDzHIVgA"}] //这里修改你的邀请码
+newShareCodes = [{"inviteCode":"eU9Yae-yZ_109zvTziVB1A"},{"inviteCode":"IhMwb-ywZP4v9Gy6iw"},{"inviteCode":"9re3u1czsFu2J8tpEtCiD37b"},{"inviteCode":"eU9YPYrnE7Zusi6ijg1n"},{"inviteCode":"Ihg-be20b_4v-Gm6iw"}] //这里修改你的邀请码
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
@@ -40,13 +38,14 @@ if ($.isNode()) {
 }
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 let allMessage = '';
+let shareDate=""
 !(async () => {
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
     return;
   }
   //await requireConfig()
-console.log(`您提供了${newShareCodes.length}个账号的${$.name}助力码\n`);  
+  console.log(`您提供了${newShareCodes.length}个账号的${$.name}助力码\n`);
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -100,16 +99,17 @@ function ShareInfo() {
             data = JSON.parse(data);
             if( data.code === 0 && data.data.bizCode === 0){
               console.log(`你的inviteCode: ${data.data.result.inviteCode}`)
-              
+
               console.log(`你的shareDate: ${data.data.result.shareDate}`)
-               let helpInfo = {
-                'inviteCode': data.data.result.inviteCode,
-                'shareDate': data.data.result.shareDate
-              }
+              shareDate=data.data.result.shareDate
+              // let helpInfo = {
+              //   'inviteCode': data.data.result.inviteCode,
+              //   'shareDate': data.data.result.shareDate
+              // }
             } else if (data.data.bizCode===207){
               console.log(data.data.bizMsg)
-              
-              
+
+
             } else{
               console.log(data.data.bizMsg)
             }
@@ -145,10 +145,10 @@ function index(info=false) {
               // console.log(`您的助力码为${data.data.result.inviteCode}`)
               console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${data.data.result.inviteCode}\n`);
               //let helpInfo = {
-                //'inviteCode': data.data.result.inviteCode,
-                //'shareDate': data.data.result.shareDate
-             // }
-             await ShareInfo()
+              //'inviteCode': data.data.result.inviteCode,
+              //'shareDate': data.data.result.shareDate
+              // }
+              await ShareInfo()
               $.shareDate = data.data.result.shareDate;
               // $.log(`shareDate: ${$.shareDate}`)
               // console.log(helpInfo)
@@ -193,15 +193,15 @@ async function helpFriends() {
     console.log(`去帮助好友${code['inviteCode']}`)
 
     await helpFriend(code)
-    if(!$.canHelp) 
-    break
+    if(!$.canHelp)
+      break
     await $.wait(1000)
   }
 
 }
 function helpFriend(helpInfo) {
   return new Promise((resolve) => {
-    $.get(taskUrl("cash_mob_assist", {...helpInfo,"source":3,"shareDate":"IRs1bey0ZPg"}), (err, resp, data) => {
+    $.get(taskUrl("cash_mob_assist", {...helpInfo,"source":3,"shareDate":shareDate}), (err, resp, data) => {
       try {
         if (err) {
           console.log(`${JSON.stringify(err)}`)
@@ -298,8 +298,8 @@ function shareCodesFormat() {
   return new Promise(async resolve => {
     //$.newShareCodes = [];
 
-      $.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
-    
+    $.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
+
     $.newShareCodes.map((item, index) => $.newShareCodes[index] = { "inviteCode": item, "shareDate": $.shareDate })
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify($.newShareCodes)}`)
     resolve();
@@ -350,6 +350,7 @@ function deepCopy(obj) {
   return objClone;
 }
 function taskUrl(functionId, body = {}) {
+
   return {
     url: `${JD_API_HOST}?functionId=${functionId}&body=${escape(JSON.stringify(body))}&appid=CashRewardMiniH5Env&appid=9.1.0`,
     headers: {
